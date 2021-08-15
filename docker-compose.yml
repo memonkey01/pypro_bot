@@ -1,0 +1,58 @@
+version: '3.7'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+    webserver:
+        image: puckel/docker-airflow:latest
+        restart: always
+        depends_on:
+            - postgres
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+            - ROOT_DIR=/usr/local/airflow/dags
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./requirements.txt:/requirements.txt
+            # - ./plugins:/usr/local/airflow/plugins
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3  
+
+    pypro_db:
+        image: mysql:8.0.25
+        command: --default-authentication-plugin=mysql_native_password 
+        volumes:
+        - "db_data2:/var/lib/mysql"
+        restart: always
+        ports:
+        - 3306:3306
+        depends_on:
+            - postgres
+        environment:
+            - MYSQL_ROOT_PASSWORD=pypro
+            - MYSQL_DATABASE=pypro
+            - MYSQL_USER=pypro
+            - MYSQL_PASSWORD=pypro
+volumes:
+  db_data:
+  db_data2:

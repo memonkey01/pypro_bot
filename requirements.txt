@@ -1,0 +1,5 @@
+pandas==1.2.4
+bybit
+mysql-connector-python==8.0.20
+SQLAlchemy==1.3.15
+
